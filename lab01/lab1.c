@@ -29,7 +29,7 @@ int main(void)
     while ((cat = read(file, buf, sizeof(buf)))) {
         if (cat < 0)
             fatal("Eroare la citire");
-        printf("%s\n", buf);
+        write(1,buf,cat);
     }
 
     close(file);

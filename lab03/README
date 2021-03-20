@@ -1,0 +1,10 @@
+ speed    delay  time
+   1        10   0m5,315s
+   1        20   0m6,302s 
+   2	    50   0m8,188s
+   5        50   0m7,509s
+
+Takeaways = observam ca pe masura ce latenta este mai mare timpul creste 
+2. sender cu fereastra glisanta
+ speed    delay  time
+   5	    50   0m2,545s

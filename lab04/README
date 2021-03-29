@@ -1,0 +1,17 @@
+Implementarea protocolului de forwarding pentru router 
+Mica Bogdan 322CB semigrupa 2
+
+###### Gasirea adresei ip din tabela de rutare cu masca cea mai mare #####
+Am incercat sa sortez intrarile din tabela de rutare in functie de adresa ip,iar in cazul in care gaseam doua prefixe egale,le sortam in functie de masca.
+Dupa ce am sortat intrarile, am folosit binary search pentru a gasi adresa ip care se potriveste cu cea destinatie.
+
+########Gasirea adresei IP din tabela ARP pentru a face match cu adresa mac pt layer 2####
+Am cautat in O(n) intrarile de ip-uri din tabela arp pana cand am gasit adresa ip potrivita
+
+##########Verificarea checksum-ului pentru a verifica daca pachetul a fost corupt######
+Ne folosim de functia ip_checksum pentru a verifica daca s a corupt mesajul,pentru a informa router ul ca pachetul trebuie aruncat.La fel si pentru task-ul urmator,unde trebuie verificat ttl-ul
+
+#### 
+Pentru a verifica integritatea mesajelor s au verificat in header ul ip ttl si checksum si daca nu au existat coruperi,se trimite pachetul mai departe la cea mai buna ruta gasita.
+
+Am incercat sa folosesc qsort pentru a gasi mai eficient cea mai buna ruta,insa nu mi a functionat cand incercam sa dau ping intre host-uri si nu stiu de ce :( .Asa ca am lasat implementarea cu un for pentru a valida functionarea.

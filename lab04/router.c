@@ -7,22 +7,6 @@ int rtable_size;
 struct arp_entry *arp_table;
 int arp_table_len;
 
-
-int cmp_ip_address(const void *a, const void *b){
-	struct route_table_entry r1 = *(struct route_table_entry*)a;
-	struct route_table_entry r2 = *(struct route_table_entry*)b;
-	int ip1 = r1.prefix;
-	int ip2 = r2.prefix;
-	if(ip1 > ip2)
-		return ip1;
-	else if(ip1 == ip2){
-		if(ntohl(r1.mask) > ntohl(r2.mask))
-			return ip1;
-		else 
-			return ip2;
-	}	
-	return ip2;
-}
 void show_route_entries(struct route_table_entry *rtable,int size){
 	printf("IP ADDR   MASK\n");
 	for(int i = 0; i < size;i++){
@@ -37,22 +21,6 @@ struct route_table_entry *get_best_route(__u32 dest_ip) {
 	/* TODO 1: Implement the function */
 	int i;
 	struct route_table_entry *best_route = NULL;
-	/*
-	qsort(rtable,rtable_size,sizeof(struct route_table_entry),cmp_ip_address);
-	i = 0;
-	int j = rtable_size - 1;
-	while(i <= j){
-		int middle = i + (j -i)/2;
-		if(rtable[i].prefix == dest_ip){
-			best_route = &rtable[i];
-			break;
-		}
-		if(rtable[i].prefix < dest_ip)
-			i = middle + 1;
-		else
-			j = middle - 1;	
-	}
-	*/
 	for(i = 0 ; i < rtable_size;i++){
 		if ((rtable[i].mask & dest_ip) == (rtable[i].prefix & rtable[i].mask) ){
 			if(!best_route)
@@ -89,6 +57,7 @@ int main(int argc, char *argv[])
 	rtable_size = read_rtable(rtable);
 	parse_arp_table();
 	/* Students will write code here */
+	
 	while (1) {
 		rc = get_packet(&m);
 		DIE(rc < 0, "get_message");
@@ -115,6 +84,23 @@ int main(int argc, char *argv[])
 			continue;
 		memcpy(eth_hdr->ether_dhost,best_arp->mac,sizeof(best_arp->mac));
 		/* TODO 8: Forward the pachet to best_route->interface */
+		//delete it
+		if(arp_h->op == ARPOP_REQUEST){
+			//requestnext_hop_ip
+			fprintf(stderr,"Who has %d ?Tell %d\n",daddr, saddr);
+			get_interface_mac(interface,arp_h->sha);
+			memcpy(eth_hdr + 6,arp_h->sha,6 * sizeof(uint8_t));
+			arp_h->spa = htons(saddr);
+			memset(arp_h->tha,0xff,sizeof(uint8_t)*6);
+			memcpy(eth_hdr,arp_h->tha,6 * sizeof(uint8_t));
+			arp_h->tpa = htons(daddr);
+			arp_h->op = htons(ARPOP_REQUEST);
+			// trebuie sa pun la eth type 0x0806 ?
+			eth_hdr->ether_type = ARPOP_REQUEST;
+			send_arp(daddr,saddr,eth_hdr,interface,ARPOP_REQUEST);
+		}	
+
+		//delete until here
 		send_packet(best_route->interface,&m);
 	}
 	//do i have to free elements?

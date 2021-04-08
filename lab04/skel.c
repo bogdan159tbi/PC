@@ -1,5 +1,5 @@
 #include "skel.h"
-
+#include "parser.h"
 extern int interfaces[ROUTER_NUM_INTERFACES];
 
 int get_sock(const char *if_name)
@@ -228,3 +228,4 @@ void parse_arp_table()
 	fclose(f);
 	fprintf(stderr, "Done parsing ARP table.\n");
 }
+

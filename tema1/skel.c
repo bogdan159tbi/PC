@@ -301,7 +301,7 @@ struct arp_header* parse_arp(void *buffer)
 	} else
 		return NULL;
 
-}
+}intrareTabelRoutare
 
 struct icmphdr * parse_icmp(void *buffer)
 {

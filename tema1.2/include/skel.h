@@ -24,7 +24,6 @@
 /* arphdr */
 #include <net/if_arp.h>
 #include <asm/byteorder.h>
-
 /* 
  *Note that "buffer" should be at least the MTU size of the 
  * interface, eg 1500 bytes 
@@ -148,6 +147,7 @@ void send_icmp_error(uint32_t daddr, uint32_t saddr, uint8_t *sha, uint8_t *dha,
  * @param arp_op ARP OP: ARPOP_REQUEST or ARPOP_REPLY
  */
 void send_arp(uint32_t daddr, uint32_t saddr, struct ether_header *eth_hdr, int interface, uint16_t arp_op);
+
 /**
  * @brief 
  * 

@@ -1,0 +1,21 @@
+Mica Bogdan 322CBb -
+UDP server.c
+-socket(AF_INET, SOCK_DGRAM, 0) pentru a deschide un socket astfel incat server ul sa poata comunica cu clientul 
+
+- bind(sockfd, (struct sockaddr*)&my_sockaddr, sizeof(struct sockaddr_in)) = intrucat cunoastem ip si portul pentru serverul ,acestea 2 ii sunt asociate prin functia bind() socketului creat la pasul anterior.
+
+-pentru a primi datagramele de la client este folosita functia recvfrom() introdusa intr un loop,urmand ca socketul sa fie inchis la finalul primirii de date de la client
+
+UDP client.c
+
+-la fel ca la server.c se foloseste functia socket() pentru a deschide un canal de comunicare de la client spre server.
+-spre deosebire de server.c ,nu se mai foloseste bind() pentru a asocia IP + PORT si este lasat la latitudinea sistemului de operare 
+-pentru a transmite datele de la client este folosita functia sendto() cu parametrii =
+/* 
+descriptor socket
+mesaj
+dimensiune mesaj
+adresa destinatie setata ca localhost
+dim structura adresa_destinatie
+*/
+-la final urmand sa inchidem socketul deschis pt comunicatie

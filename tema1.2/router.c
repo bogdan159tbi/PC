@@ -49,7 +49,7 @@ void parse_router(char *prefix,char *nexth, char *mask,char *interface,int seq,s
 	rtable[seq].prefix = inet_addr(prefix);
 	rtable[seq].next_hop = inet_addr(nexth);
 	rtable[seq].mask = inet_addr(mask);
-	rtable[seq].outgoing_interface = inet_addr(interface);
+	rtable[seq].outgoing_interface = atoi(interface);
 }
 
 void parse_router_table(char *filename){
@@ -67,11 +67,11 @@ void parse_router_table(char *filename){
 				        prefix_str, next_hop_str, mask_str,interface_str);
 		if(strcmp("filename","rtable0.txt")){
 			parse_router(prefix_str, next_hop_str,mask_str,interface_str,i,rtable0);
-            rtable0->size = i+1;
+			rtable0->size = i+1;
         }
 		else{
 			parse_router(prefix_str, next_hop_str,mask_str,interface_str,i,rtable1);
-            rtable1->size = i+1; // am pus i+1 pt ca in lab 4 rtable_size = i la iesire din for
+			rtable1->size = i+1; // am pus i+1 pt ca in lab 4 rtable_size = i la iesire din for
         }
 	}  
 	fclose(f);
@@ -254,7 +254,6 @@ uint16_t ip_checksum2(void* vdata,size_t length) {
 	return htons(~acc);
 }
 
-
 int main(int argc, char *argv[])
 {
 	packet m;
@@ -273,7 +272,7 @@ int main(int argc, char *argv[])
 	parse_router_table("rtable0.txt");
 	parse_router_table("rtable1.txt");
 	parse_arp_table();
-	
+	queue q = queue_create();
 	//functionalitati router
 	while (1) {
 		// receive packet
@@ -288,15 +287,31 @@ int main(int argc, char *argv[])
 		if(icmp_hdr){
 			if(icmp_hdr->type == ICMP_ECHO){ //PT REQUEST
 				//WARNING nu stiu daca ia adresa buna functia asta
-				struct in_addr adr;
+				struct router_entry *route = get_best_route(ip_hdr->daddr);
+				struct in_addr adr,adr2,adr3;
+				adr2.s_addr = ip_hdr->saddr;
+				adr.s_addr = ip_hdr->daddr;
+				fprintf(stdout,"icmp request to ip = %s from %s\n",(inet_ntoa(adr)),inet_ntoa(adr2));
+				if(!route){
+					fprintf(stdout,"route e null\n");
+					continue;
+				}else{
+					adr.s_addr = route->next_hop;
+					fprintf(stdout,"interface = %d next_hop %s\n",route->outgoing_interface,inet_ntoa(adr));
+				}
 				uint32_t router_ip;
-				inet_aton(get_interface_ip(m.interface),&adr);
-				router_ip = adr.s_addr;
-				fprintf(stdout,"icmp echo router ip = %s\n",get_interface_ip(m.interface));
+			
+				
+				char *str = malloc(50);// sa i dau free daca l las cu malloc
+				str = get_interface_ip(route->outgoing_interface);
+				inet_aton(str,&adr3);
+				router_ip = adr3.s_addr;
+				fprintf(stdout,"router ip addr %s\n",inet_ntoa(adr3));
+
 				if(ip_hdr->daddr == router_ip){
 					//adauga icmp reply
-					fprintf(stdout,"icmp reply failed\n");
-					send_icmp(ip_hdr->saddr,ip_hdr->daddr,eth_hdr->ether_dhost,eth_hdr->ether_shost,
+					fprintf(stdout,"icmp reply from router\n");
+					send_icmp(ip_hdr->daddr,ip_hdr->saddr,eth_hdr->ether_shost,eth_hdr->ether_dhost,
 							 0,0,m.interface,icmp_hdr->un.echo.id,icmp_hdr->un.echo.sequence);
 				}else if(/*verifica ttl */ip_hdr->ttl <= 1 ){
 					//time limit exceeded
@@ -305,33 +320,55 @@ int main(int argc, char *argv[])
 					b.s_addr = ip_hdr->daddr;
 					fprintf(stdout,"ICMP: time exceeded ttl sent %s (dest was %s)\n",inet_ntoa(a),inet_ntoa(b));
 					//ce fel de mesaj icmp trebuie trimis?
-					send_icmp(ip_hdr->saddr,ip_hdr->daddr,eth_hdr->ether_dhost,eth_hdr->ether_shost,
-							11,0,m.interface,icmp_hdr->un.echo.id,icmp_hdr->un.echo.sequence);
+					send_icmp_error(ip_hdr->saddr,ip_hdr->daddr,eth_hdr->ether_dhost,
+									eth_hdr->ether_shost,11,0,m.interface);
 					continue;
 				}else{
 					//destination host unreachable daca nu e pt router 
-					fprintf(stdout,"icmp destination unreachble failed\n");
-					send_icmp(ip_hdr->saddr,ip_hdr->daddr,eth_hdr->ether_dhost,eth_hdr->ether_shost,
-							 3,0,m.interface,icmp_hdr->un.echo.id,icmp_hdr->un.echo.sequence);
+					struct in_addr a,b;
+					a.s_addr = ip_hdr->saddr;
+					b.s_addr = ip_hdr->daddr;
+					fprintf(stdout,"icmp destination unreachable failed from %s to %s\n",inet_ntoa(b), inet_ntoa(a));
+					//send_icmp(ip_hdr->daddr,ip_hdr->saddr,eth_hdr->ether_shost,eth_hdr->ether_dhost,
+					//		 3,0,m.interface,icmp_hdr->un.echo.id,icmp_hdr->un.echo.sequence);
+					send_icmp_error(ip_hdr->saddr,ip_hdr->daddr,eth_hdr->ether_dhost,
+									eth_hdr->ether_shost,3,0,m.interface);
+					continue;
 				}
 			}
 		}else
 			continue;
-
-		//packet = arp request to one of ip s addresses =>
+		fprintf(stdout,"icmp succeeded\n");
+		//packet = arp request to one of router s ip addresses =>
 		// answer = arp reply with ip mac address = get_interface_mac()
 		struct arp_header *arp_hdr = parse_arp(m.payload);
+		struct router_entry *route;
 		// Check if the header has been extracted succesfully
 		if ( arp_hdr != NULL ) {
 			if(arp_hdr->op == ARPOP_REQUEST){
-				if(arp_hdr->tpa == ip_hdr->daddr){
-					send_arp(ip_hdr->daddr,ip_hdr->saddr,eth_hdr,m.interface,
+				route = get_best_route(ip_hdr->daddr);
+				uint32_t rtr_ip;
+				char *s = get_interface_ip(route->outgoing_interface);
+				struct in_addr rp;
+				inet_aton(s,&rp);
+				rtr_ip = rp.s_addr;
+				fprintf(stdout,"arprequest \n");
+				if(arp_hdr->tpa == rtr_ip){
+					fprintf(stdout,"arp request to dest ip = %s\n",inet_ntoa(rp));
+					//modifica pt arp reply cu adresele mac potrivite
+					//adresa mac sursa = adresa mac ip
+					//adr mac dest = adr mac sursa initiala
+					memcpy(eth_hdr->ether_dhost,eth_hdr->ether_shost, 6 * sizeof(uint8_t));
+					get_interface_mac(route->outgoing_interface,eth_hdr->ether_shost);
+					//send arp reply from router
+					send_arp(ip_hdr->saddr,ip_hdr->daddr,eth_hdr,route->outgoing_interface,
 							ARPOP_REPLY);
 				}
 			}else if(arp_hdr->op == ARPOP_REPLY){
 				//packet = arp reply => update arp_table 
-				// ia adresa ip sursa si mapeaz o la adresa mac sursa
 
+				// ia adresa ip sursa si mapeaz o la adresa mac sursa
+				memcpy(eth_hdr->ether_dhost,eth_hdr->ether_shost, 6 * sizeof(uint8_t));
 				// unde le transmit mai departe?
 			}
 		}
@@ -339,6 +376,7 @@ int main(int argc, char *argv[])
 		if(ip_hdr->ttl <= 1){
 			// nu tratez deja mai sus cazul de icmp ttl exceeded ? 
 			// mai e nevoie
+			
 			continue;
 		}
 		//daca checksum e gresit => continue;
@@ -356,7 +394,7 @@ int main(int argc, char *argv[])
 			//WARNING nu sunt sigur ca aici e bine
 			//destination host unreachable daca nu e pt router 
 			fprintf(stderr,"best router entry not found  algorithm point 7\n");
-			send_icmp(ip_hdr->saddr,ip_hdr->daddr,eth_hdr->ether_dhost,eth_hdr->ether_shost,
+			send_icmp(ip_hdr->saddr,ip_hdr->daddr,eth_hdr->ether_shost,eth_hdr->ether_dhost,
 					 3,0,m.interface,icmp_hdr->un.echo.id,icmp_hdr->un.echo.sequence);
 			continue;
 		}
@@ -390,12 +428,12 @@ int main(int argc, char *argv[])
 			
 			send_arp(best_route->next_hop,ip_hdr->daddr,eth_hdr,
 			best_route->outgoing_interface,ARPOP_REQUEST);
-			
+			//TODO: cum bag pachetul in coada stiind ca inca nu am 
+			// aflat adresa mac dest
 			continue;
 		}
 		//and then save the packet in the queue for sending further when
 		// dest mac addr is found
-		queue q = queue_create();
 		//queue_enq(q,m);
 		// send_packet() further
 		send_packet(best_route->outgoing_interface,&m);

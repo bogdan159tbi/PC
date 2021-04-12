@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
+#include <string.h>
 #include <arpa/inet.h>
 #include "helpers.h"
 
@@ -26,11 +26,32 @@ void usage(char*file)
 /*
 *	Utilizare: ./server server_port nume_fisier
 */
+void create_file_bk(char *filename){
+        char *tok = strtok(filename,".");
+        strcat(tok,".bk");
+        strcpy(filename,tok);
+}
+void receive_fcontent(struct sockaddr_in from_station, int sockfd){
+        int fd;
+	char buf[BUFLEN];
+        socklen_t adr_len = sizeof(from_station);
+        DIE(recvfrom(sockfd, buf, sizeof(buf), 0, (struct sockaddr*)&from_station, &adr_len) <= 0,"read file name failed");
+        create_file_bk(buf);
+        DIE((fd=open(buf,O_WRONLY|O_CREAT|O_TRUNC,0666))==-1,"open file");
+        size_t read_bytes;
+        memset(buf,0,sizeof(buf));
+        while ((read_bytes = 
+                recvfrom(sockfd, buf, sizeof(buf), 0, (struct sockaddr*)&from_station, &adr_len)) > 0) {
+            DIE(write(fd, buf, read_bytes) <= 0, "write done/fail");
+        }
+        close(fd);
+
+}
 int main(int argc,char**argv)
 {
 	int fd;
 
-	if (argc!=3)
+	if (argc <  2)
 		usage(argv[0]);
 	
 	struct sockaddr_in my_sockaddr = {
@@ -39,8 +60,6 @@ int main(int argc,char**argv)
             .sin_addr.s_addr = INADDR_ANY
         } , from_station ;
 	char buf[BUFLEN];
-
-
 	/*Deschidere socket*/
         int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
         DIE(sockfd < 0, "socket open fail");	
@@ -61,25 +80,20 @@ int main(int argc,char**argv)
             exit(1);
         }
 	
-	
+	// receive nr of files
+        socklen_t adr_len = sizeof(from_station);
+        DIE(recvfrom(sockfd,buf,sizeof(buf),0, (struct sockaddr*)&from_station, &adr_len) <= 0,"receive files nr failed\n");
 	/* Deschidere fisier pentru scriere */
-	DIE((fd=open(argv[2],O_WRONLY|O_CREAT|O_TRUNC,0644))==-1,"open file");
-	
-	/*
-	*  cat_timp  mai_pot_citi
-	*		citeste din socket
-	*		pune in fisier
-	*/
-        socklen_t adr_len = sizeof(from_station);\
-        size_t read_bytes;
-        while ((read_bytes = recvfrom(sockfd, buf, sizeof(buf), 0, (struct sockaddr*)&from_station, &adr_len)) > 0) {
-            DIE(write(fd, buf, read_bytes) <= 0, "write done/fail");
+        fprintf(stdout,"%d files\n",buf[0]);
+	for(char j = 0 ; j < buf[0] - 1;j++){
+                receive_fcontent(from_station,sockfd);
         }
-
+       
 	/*Inchidere socket*/	
         close(sockfd);
 	
 	/*Inchidere fisier*/
-        close(fd);
+        //close(fd);
 	return 0;
 }
+

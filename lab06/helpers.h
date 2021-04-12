@@ -14,7 +14,7 @@
 #define DIE(assertion, call_description)				\
 	do {								\
 		if (assertion) {					\
-			fprintf(stderr, "(%s, %d): ",			\
+			fprintf(stdout, "(%s, %d): ",			\
 					__FILE__, __LINE__);		\
 			perror(call_description);			\
 			exit(EXIT_FAILURE);				\

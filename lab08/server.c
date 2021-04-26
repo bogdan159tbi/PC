@@ -60,7 +60,8 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		tmp_fds = read_fds; 
-		
+		//select pastreaza doar descriptorii pe care se primesc data
+		//de aia se foloseste o multime temporare pt descriptori
 		ret = select(fdmax + 1, &tmp_fds, NULL, NULL, NULL);
 		DIE(ret < 0, "select");
 
@@ -74,6 +75,7 @@ int main(int argc, char *argv[])
 					DIE(newsockfd < 0, "accept");
 					char newsockfdstr[3];
 					sprintf(newsockfdstr,"%d",newsockfd);
+					//add every new client to list
 					strcat(list_fds, newsockfdstr);
 					strcat(list_fds," ");
 					// se adauga noul socket intors de accept() la multimea descriptorilor de citire
@@ -113,10 +115,8 @@ int main(int argc, char *argv[])
 						for(int fds = 0; fds <= fdmax; fds++){
 							if (fds != sockfd){
 								if(FD_ISSET(fds, &read_fds)){
-									puts("here");
 									int r = send(fds, msg, strlen(msg) + 1,0);
 									DIE(r < 0 , "send failed\n");
-									//add every client to list
 								}
 							} 
 						}
@@ -128,13 +128,14 @@ int main(int argc, char *argv[])
 
 						char s1[BUFLEN];
 						int nr;
+						//pune s1 mesajul in sine si in nr se pune file descriptorul socketului destinatie
 						int elem = sscanf(buffer, "%d%[^\n]s", &nr, s1);
-						if(elem == 2){
+						if(elem == 2){ //daca mesajul este format corect ,adica sockId + msg_content
 							printf ("S-a primit de la clientul de pe socketul %d mesajul: %s\n", i, buffer);
 							int res = send(nr, s1, strlen(s1) + 1,0);// + \0
 							DIE(res < 0 ,"send failed\n");
 						} else{
-							fprintf(stdout,"message ignored\n");
+							fprintf(stdout,"message ignored\n");// in cazul in care mesajul trimis nu are formatul dorit
 						}
 					}
 				}
@@ -143,6 +144,7 @@ int main(int argc, char *argv[])
 	}
 
 	close(sockfd);
+	free(list_fds);
 
 	return 0;
 }

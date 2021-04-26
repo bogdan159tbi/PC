@@ -84,23 +84,7 @@ int main(int argc, char *argv[])
 			continue;
 		memcpy(eth_hdr->ether_dhost,best_arp->mac,sizeof(best_arp->mac));
 		/* TODO 8: Forward the pachet to best_route->interface */
-		//delete it
-		if(arp_h->op == ARPOP_REQUEST){
-			//requestnext_hop_ip
-			fprintf(stderr,"Who has %d ?Tell %d\n",daddr, saddr);
-			get_interface_mac(interface,arp_h->sha);
-			memcpy(eth_hdr + 6,arp_h->sha,6 * sizeof(uint8_t));
-			arp_h->spa = htons(saddr);
-			memset(arp_h->tha,0xff,sizeof(uint8_t)*6);
-			memcpy(eth_hdr,arp_h->tha,6 * sizeof(uint8_t));
-			arp_h->tpa = htons(daddr);
-			arp_h->op = htons(ARPOP_REQUEST);
-			// trebuie sa pun la eth type 0x0806 ?
-			eth_hdr->ether_type = ARPOP_REQUEST;
-			send_arp(daddr,saddr,eth_hdr,interface,ARPOP_REQUEST);
-		}	
-
-		//delete until here
+		
 		send_packet(best_route->interface,&m);
 	}
 	//do i have to free elements?

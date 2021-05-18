@@ -1,0 +1,134 @@
+GET /api/v1/dummy HTTP/1.1
+Host: 34.118.48.238
+
+
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+X-DNS-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Content-Type: text/html; charset=utf-8
+Content-Length: 12
+ETag: W/"c-axnLN5C22o98NLTYiV14pW0HhiQ"
+Date: Wed, 12 May 2021 16:57:40 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+Hello there!
+POST /api/v1/dummy HTTP/1.1
+Host: 34.118.48.238
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 14
+
+student=sergiu
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+X-DNS-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Content-Type: application/json; charset=utf-8
+Content-Length: 20
+ETag: W/"14-YhemelrieXVwd63aJc6WvAA0tOM"
+Date: Wed, 12 May 2021 16:57:40 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"student":"sergiu"}
+POST /api/v1/auth/login HTTP/1.1
+Host: 34.118.48.238
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 33
+
+username=student&password=student
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+X-DNS-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Set-Cookie: connect.sid=s%3A_7j9fF3b1hbwPyWsle79EVbJfD0Kj9F1.lqmsCz6z97JxxQMU9%2F%2BBNAgH4%2FiNTwXOnXOvt1TkpoA; Path=/; HttpOnly
+Date: Wed, 12 May 2021 16:57:40 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 0
+
+
+GET /api/v1/weather/key HTTP/1.1
+Host: 34.118.48.238
+Cookie: connect.sid=s%3A7Ra9POih8Pq1WooKMl3CenQ5nr-Oq-gQ.2PaqRk5M9laKZ2emwO7w4mNXDIqtqp%2BAr1ghadJd7o8
+
+
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+X-DNS-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Content-Type: application/json; charset=utf-8
+Content-Length: 42
+ETag: W/"2a-KcT6RSVmdMwjWI5Ugs5McpTCZpM"
+Date: Wed, 12 May 2021 16:57:40 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"key":"b912dd495585fbf756dc6d8f415a7649"}
+POST /api/v1/auth/login HTTP/1.1
+Host: 34.118.48.238
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 33
+Cookie: connect.sid=s%3A7Ra9POih8Pq1WooKMl3CenQ5nr-Oq-gQ.2PaqRk5M9laKZ2emwO7w4mNXDIqtqp%2BAr1ghadJd7o8
+
+username=student&password=student
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+X-DNS-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Content-Type: text/html; charset=utf-8
+Content-Length: 18
+ETag: W/"12-saeEcL+O9fbmzlF1VXPPvMkgvBs"
+Date: Wed, 12 May 2021 16:57:41 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+Already logged in!
+GET /data/2.5/weather?lat=44&lon=22&appid=b912dd495585fbf756dc6d8f415a7649 HTTP/1.1
+Host: api.openweathermap.org
+
+
+POST /api/v1/weather/44/22 HTTP/1.1
+Host: 34.118.48.238
+Content-Type: application/json
+Content-Length: 525
+Cookie: connect.sid=s%3A7Ra9POih8Pq1WooKMl3CenQ5nr-Oq-gQ.2PaqRk5M9laKZ2emwO7w4mNXDIqtqp%2BAr1ghadJd7o8
+
+{"coord":{"lon":22,"lat":44},"weather":[{"id":500,"main":"Rain","description":"light rain","icon":"10d"}],"base":"stations","main":{"temp":286.5,"feels_like":286.37,"temp_min":285.94,"temp_max":286.5,"pressure":1006,"humidity":95,"sea_level":1006,"grnd_level":967},"visibility":10000,"wind":{"speed":2.35,"deg":333,"gust":4.8},"rain":{"1h":0.56},"clouds":{"all":69},"dt":1620838485,"sys":{"type":2,"id":2036985,"country":"RS","sunrise":1620788961,"sunset":1620841648},"timezone":7200,"id":792308,"name":"Brestovac","cod":200}
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+X-DNS-Prefetch-Control: off
+X-Frame-Options: SAMEORIGIN
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Download-Options: noopen
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Content-Type: text/html; charset=utf-8
+Content-Length: 8
+ETag: W/"8-LwYUdJYKsk9BSjDuszYWORA1TOU"
+Date: Wed, 12 May 2021 16:57:42 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+Matches!

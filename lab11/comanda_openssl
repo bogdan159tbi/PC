@@ -1,0 +1,2 @@
+openssl s_client -connect smtp.gmail.com:587 -starttls smtp -crlf -ign_eof
+
